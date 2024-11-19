@@ -1,7 +1,8 @@
 package logrus_fluent
 
 import (
-	"github.com/fluent/fluent-logger-golang/fluent"
+	"fmt"
+	"github.com/IBM/fluent-forward-go/fluent/client"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,7 +36,7 @@ type FluentHook struct {
 	// Fluent is actual fluentd logger.
 	// If set, this logger is used for logging.
 	// otherwise new logger is created every time.
-	Fluent *fluent.Fluent
+	Fluent *client.Client
 	conf   Config
 
 	levels []logrus.Level
@@ -58,10 +59,14 @@ func New(host string, port int) (*FluentHook, error) {
 
 // NewWithConfig returns initialized logrus hook by config setting.
 func NewWithConfig(conf Config) (*FluentHook, error) {
-	var fd *fluent.Fluent
+	var fd *client.Client
 	if !conf.DisableConnectionPool {
-		var err error
-		fd, err = fluent.New(conf.FluentConfig())
+		fd = client.New(client.ConnectionOptions{
+			Factory: &client.ConnFactory{
+				Address: fmt.Sprintf("%s:%d", conf.Host, conf.Port),
+			},
+		})
+		err := fd.Connect()
 		if err != nil {
 			return nil, err
 		}
@@ -153,18 +158,26 @@ func (hook *FluentHook) AddCustomizer(fn func(entry *logrus.Entry, data logrus.F
 
 // Fire is invoked by logrus and sends log to fluentd logger.
 func (hook *FluentHook) Fire(entry *logrus.Entry) error {
-	var logger *fluent.Fluent
+	var logger *client.Client
 	var err error
 
 	switch {
 	case hook.Fluent != nil:
 		logger = hook.Fluent
 	default:
-		logger, err = fluent.New(hook.conf.FluentConfig())
+		logger = client.New(client.ConnectionOptions{
+			Factory: &client.ConnFactory{
+				Address: fmt.Sprintf("%s:%d", hook.conf.Host, hook.conf.Port),
+			},
+		})
+		err := logger.Connect()
+
+		//logger, err = fluent.New(hook.conf.FluentConfig())
+
 		if err != nil {
 			return err
 		}
-		defer logger.Close()
+		defer logger.Disconnect()
 	}
 
 	// Create a map for passing to FluentD
@@ -191,7 +204,7 @@ func (hook *FluentHook) Fire(entry *logrus.Entry) error {
 	}
 
 	fluentData := ConvertToValue(data, TagName)
-	err = logger.PostWithTime(tag, entry.Time, fluentData)
+	err = logger.SendMessage(tag, fluentData)
 	return err
 }
 

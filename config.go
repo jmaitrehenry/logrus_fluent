@@ -3,7 +3,6 @@ package logrus_fluent
 import (
 	"time"
 
-	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/sirupsen/logrus"
 )
 
@@ -35,21 +34,21 @@ type Config struct {
 }
 
 // FluentConfig converts data to fluent.Config.
-func (c Config) FluentConfig() fluent.Config {
-	return fluent.Config{
-		FluentPort:         c.Port,
-		FluentHost:         c.Host,
-		FluentNetwork:      c.FluentNetwork,
-		FluentSocketPath:   c.FluentSocketPath,
-		Timeout:            c.Timeout,
-		WriteTimeout:       c.WriteTimeout,
-		BufferLimit:        c.BufferLimit,
-		RetryWait:          c.RetryWait,
-		MaxRetry:           c.MaxRetry,
-		TagPrefix:          c.TagPrefix,
-		Async:              c.AsyncConnect,
-		MarshalAsJSON:      c.MarshalAsJSON,
-		SubSecondPrecision: c.SubSecondPrecision,
-		RequestAck:         c.RequestAck,
-	}
-}
+//func (c Config) FluentConfig() fluent.Config {
+//	return fluent.Config{
+//		FluentPort:         c.Port,
+//		FluentHost:         c.Host,
+//		FluentNetwork:      c.FluentNetwork,
+//		FluentSocketPath:   c.FluentSocketPath,
+//		Timeout:            c.Timeout,
+//		WriteTimeout:       c.WriteTimeout,
+//		BufferLimit:        c.BufferLimit,
+//		RetryWait:          c.RetryWait,
+//		MaxRetry:           c.MaxRetry,
+//		TagPrefix:          c.TagPrefix,
+//		Async:              c.AsyncConnect,
+//		MarshalAsJSON:      c.MarshalAsJSON,
+//		SubSecondPrecision: c.SubSecondPrecision,
+//		RequestAck:         c.RequestAck,
+//	}
+//}
