@@ -89,7 +89,10 @@ func NewWithConfig(conf Config) (*FluentHook, error) {
 	}
 	if conf.DefaultMessageField != "" {
 		hook.messageField = conf.DefaultMessageField
+	} else {
+		hook.messageField = MessageField
 	}
+
 	for k, v := range conf.DefaultIgnoreFields {
 		hook.ignoreFields[k] = v
 	}
@@ -193,16 +196,13 @@ func (hook *FluentHook) Fire(entry *logrus.Entry) error {
 	}
 
 	setLevelString(entry, data)
-	tag := hook.getTagAndDel(entry, data)
-	if tag != entry.Message {
-		hook.setMessage(entry, data)
-	}
+	hook.setMessage(entry, data)
 
 	// modify data to your own needs.
 	for _, fn := range hook.customizers {
 		fn(entry, data)
 	}
-
+	tag := hook.getTagAndDel(entry, data)
 	fluentData := ConvertToValue(data, TagName)
 	err = logger.SendMessage(tag, fluentData)
 	return err
